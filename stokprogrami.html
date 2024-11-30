@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+form {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+input, select {
+    padding: 10px;
+    margin-right: 10px;
+    flex: 1;
+}
+
+button {
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+li button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+li button:hover {
+    background-color: #c82333;
+}
+
+#printButton {
+    margin-top: 20px;
+    background-color: #007bff;
+}
+
+#printButton:hover {
+    background-color: #0056b3;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <h3><center>STOK PROGRAMI (DT KARİYER)</center></h3>
+        <form id="productForm">
+            <input type="text" id="productName" placeholder="MALZEME ADI" required>
+            <input type="number" id="productQuantity" placeholder="MİKTAR" required>
+            <select id="actionType" required>
+                <option value="">İŞLEM SEÇİN</option>
+                <option value="in">GİRİŞ</option>
+                <option value="out">ÇIKIŞ</option>
+            </select>
+            <button type="submit">EKLE</button>
+        </form>
+        <h2>MALZEME LİSTESİ</h2>
+        <ul id="productList"></ul>
+        <button id="printButton">YAZDIR</button>
+    </div>
+    <script>
+    let productStock = {};
+
+// Form gönderildiğinde
+document.getElementById('productForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const productName = document.getElementById('productName').value;
+    const productQuantity = parseInt(document.getElementById('productQuantity').value);
+    const actionType = document.getElementById('actionType').value;
+
+    if (actionType === "in") {
+        addProduct(productName, productQuantity);
+    } else if (actionType === "out") {
+        removeProduct(productName, productQuantity);
+    }
+
+    document.getElementById('productForm').reset();
+    updateProductList();
+});
+
+// Ürün ekleme fonksiyonu
+function addProduct(name, quantity) {
+    if (productStock[name]) {
+        productStock[name] += quantity;
+    } else {
+        productStock[name] = quantity;
+    }
+}
+
+// Ürün çıkarma fonksiyonu
+function removeProduct(name, quantity) {
+    if (productStock[name]) {
+        productStock[name] -= quantity;
+        if (productStock[name] <= 0) {
+            delete productStock[name];
+        }
+    }
+}
+
+// Ürün listesini güncelleme fonksiyonu
+function updateProductList() {
+    const productList = document.getElementById('productList');
+    productList.innerHTML = '';
+
+    for (const [name, quantity] of Object.entries(productStock)) {
+        const li = document.createElement('li');
+        li.textContent = `${name} - ${quantity}`;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Sil';
+        deleteButton.onclick = function() {
+            delete productStock[name];
+            updateProductList();
+        };
+
+        li.appendChild(deleteButton);
+        productList.appendChild(li);
+    }
+}
+
+// Yazdırma fonksiyonu
+document.getElementById('printButton').addEventListener('click', function() {
+    let printContent = 'Ürün Listesi:\n\n';
+    for (const [name, quantity] of Object.entries(productStock)) {
+        printContent += `${name} - ${quantity}\n`;
+    }
+    
+    // Yazdırma için yeni bir pencere açıyoruz
+    const printWindow = window.open('', '', 'height=400,width=600');
+    printWindow.document.write('<pre>' + printContent + '</pre>');
+    printWindow.document.close();
+    printWindow.print();
+});
+
+    </script>
+</body>
+</html>
